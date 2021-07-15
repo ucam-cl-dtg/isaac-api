@@ -141,6 +141,14 @@ public class QuizQuestionManager {
         return quiz;
     }
 
+    public Map<QuestionDTO, QuestionValidationResponse> getAnswerMap(IsaacQuizDTO quiz, QuizAttemptDTO quizAttempt, boolean includeCorrect) throws SegueDatabaseException {
+        List<QuestionDTO> questionsToAugment = GameManager.getAllMarkableQuestionPartsDFSOrder(quiz);
+
+        Map<QuestionDTO, QuestionValidationResponse> answerMap = getAnswerMap(quizAttempt, questionsToAugment);
+
+        return answerMap;
+    }
+
     /**
      * Modify the quiz to contain feedback for the specified mode, and possibly the users answers and the correct answers.
      *  @param quizAttempt
