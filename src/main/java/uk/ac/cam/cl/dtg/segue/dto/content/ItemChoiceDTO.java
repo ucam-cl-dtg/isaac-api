@@ -23,6 +23,7 @@ import java.util.List;
  */
 public class ItemChoiceDTO extends ChoiceDTO {
 
+    private Boolean allowSubsetMatch;
     private List<ItemDTO> items;
 
     /**
@@ -39,4 +40,7 @@ public class ItemChoiceDTO extends ChoiceDTO {
         this.items = items;
     }
 
+    public Boolean isAllowSubsetMatch() { return this.allowSubsetMatch; }
+
+    public void setAllowSubsetMatch(final boolean allowSubsetMatch) { this.allowSubsetMatch = allowSubsetMatch; }
 }

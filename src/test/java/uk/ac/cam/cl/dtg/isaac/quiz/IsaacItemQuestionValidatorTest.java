@@ -98,6 +98,26 @@ public class IsaacItemQuestionValidatorTest {
     }
 
     /*
+       Test that exact correct answers are recognised even if the choice is subset match.
+    */
+    @Test
+    public final void isaacItemQuestionValidator_CorrectItemsSubsetMatchEnabled_CorrectResponseShouldBeReturned() {
+
+        // Enable subset matching on the second choice in the list (the correct one)
+        ((ItemChoice) someItemQuestion.getChoices().get(1)).setAllowSubsetMatch(true);
+
+        // Set up user answer:
+        ItemChoice c = new ItemChoice();
+        Item submittedItem1 = new Item("id001", null);
+        Item submittedItem3 = new Item("id003", null);
+        c.setItems(ImmutableList.of(submittedItem1, submittedItem3));
+
+        // Test response:
+        QuestionValidationResponse response = validator.validateQuestionResponse(someItemQuestion, c);
+        assertTrue(response.isCorrect());
+    }
+
+    /*
        Test that correct answers are recognised in any order.
     */
     @Test
@@ -150,6 +170,125 @@ public class IsaacItemQuestionValidatorTest {
         // Test response:
         QuestionValidationResponse response = validator.validateQuestionResponse(itemQuestion, c);
         assertTrue(response.isCorrect());
+    }
+
+    /*
+       Test that correct subset choices take precedence over incorrect subset ones.
+    */
+    @Test
+    public final void isaacItemQuestionValidator_CorrectChoiceSubsetPrecedence_CorrectResponseShouldBeReturned() {
+
+        // Enable subset matching on both of the choices in the list
+        ((ItemChoice) someItemQuestion.getChoices().get(0)).setAllowSubsetMatch(true);
+        ((ItemChoice) someItemQuestion.getChoices().get(1)).setAllowSubsetMatch(true);
+
+        // Set up user answer that is a subset of both the correct and incorrect choice
+        ItemChoice c = new ItemChoice();
+        Item submittedItem1 = new Item("id001", null);
+        Item submittedItem2 = new Item("id002", null);
+        Item submittedItem3 = new Item("id003", null);
+        c.setItems(ImmutableList.of(submittedItem1, submittedItem2, submittedItem3));
+
+        // Test response:
+        QuestionValidationResponse response = validator.validateQuestionResponse(someItemQuestion, c);
+        assertTrue(response.isCorrect());
+    }
+
+    /*
+       Test that if the correct choice is a strict subset of the submitted answer, it is marked as correct,
+       if the correct choice is marked as subset match.
+    */
+    @Test
+    public final void isaacItemQuestionValidator_CorrectChoiceSubsetOfSubmitted_CorrectResponseShouldBeReturned() {
+
+        // Enable subset matching on the correct choice
+        ((ItemChoice) someItemQuestion.getChoices().get(1)).setAllowSubsetMatch(true);
+
+        // Set up user answer that is a strict superset of the correct choice
+        ItemChoice c = new ItemChoice();
+        Item submittedItem1 = new Item("id001", null);
+        Item submittedItem2 = new Item("id002", null);
+        Item submittedItem3 = new Item("id003", null);
+        c.setItems(ImmutableList.of(submittedItem1, submittedItem2, submittedItem3));
+
+        // Test response:
+        QuestionValidationResponse response = validator.validateQuestionResponse(someItemQuestion, c);
+        assertTrue(response.isCorrect());
+    }
+
+    /*
+       Test that incorrect strict choices take precedence over correct subset ones.
+    */
+    @Test
+    public final void isaacItemQuestionValidator_IncorrectOverCorrectSubsetPrecedence_IncorrectResponseShouldBeReturned() {
+
+        IsaacItemQuestion itemQuestion = new IsaacItemQuestion();
+
+        List<Choice> answerList = Lists.newArrayList();
+        ItemChoice someIncorrectChoice = new ItemChoice();
+        ItemChoice someCorrectAnswer = new ItemChoice();
+        Item item1 = new Item("id001", "A");
+        Item item2 = new Item("id002", "B");
+        Item item3 = new Item("id003", "C");
+        itemQuestion.setItems(ImmutableList.of(item1, item2, item3));
+
+        // Correct choice is subset match, incorrect one is not
+        someCorrectAnswer.setItems(ImmutableList.of(item1, item2, item3));
+        someCorrectAnswer.setCorrect(true);
+        someCorrectAnswer.setAllowSubsetMatch(true);
+        someIncorrectChoice.setItems(ImmutableList.of(item1, item3));
+        someIncorrectChoice.setCorrect(false);
+        someCorrectAnswer.setAllowSubsetMatch(false);
+
+        // Add both choices to question, correct (with subset match enabled) first:
+        answerList.add(someCorrectAnswer);
+        answerList.add(someIncorrectChoice);
+        itemQuestion.setChoices(answerList);
+
+        // Set up user answer that is the same as the incorrect answer, and is a subset of the correct answer
+        ItemChoice c = new ItemChoice();
+        Item submittedItem1 = new Item("id001", null);
+        Item submittedItem3 = new Item("id003", null);
+        c.setItems(ImmutableList.of(submittedItem1, submittedItem3));
+
+        // Test response:
+        QuestionValidationResponse response = validator.validateQuestionResponse(itemQuestion, c);
+        assertFalse(response.isCorrect());
+        assertNull(response.getExplanation());
+    }
+
+    /*
+       Test that if the submitted answer is a strict subset of the correct choice, it is marked as incorrect,
+       if the correct choice is marked as subset match.
+    */
+    @Test
+    public final void isaacItemQuestionValidator_SubmittedSubsetOfCorrectChoice_CorrectResponseShouldBeReturned() {
+
+        // Set up the question object:
+        IsaacItemQuestion itemQuestion = new IsaacItemQuestion();
+
+        ItemChoice subsetCorrectAnswer = new ItemChoice();
+        Item item1 = new Item("id001", "A");
+        Item item2 = new Item("id002", "B");
+        Item item3 = new Item("id003", "C");
+        itemQuestion.setItems(ImmutableList.of(item1, item2, item3));
+
+        // Set up the subset match choice
+        subsetCorrectAnswer.setItems(ImmutableList.of(item1, item2));
+        subsetCorrectAnswer.setAllowSubsetMatch(true);
+        subsetCorrectAnswer.setCorrect(true);
+
+        itemQuestion.setChoices(ImmutableList.of(subsetCorrectAnswer));
+
+        // Set up user answer as a subset of the correct choice items
+        ItemChoice userAnswer = new ItemChoice();
+        Item submittedItem1 = new Item("id001", null);
+        userAnswer.setItems(ImmutableList.of(submittedItem1));
+
+        // Test response:
+        QuestionValidationResponse response = validator.validateQuestionResponse(itemQuestion, userAnswer);
+        assertFalse(response.isCorrect());
+        assertNull(response.getExplanation());
     }
 
     /*

@@ -15,6 +15,8 @@
  */
 package uk.ac.cam.cl.dtg.isaac.quiz;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,12 +90,17 @@ public class IsaacItemQuestionValidator implements IValidator {
             if (!allowedItemIds.containsAll(submittedItemIds)) {
                 feedback = new Content("You did not provide a valid answer; it contained unrecognised items");
             }
+            if (submittedItemIds.size() != submittedChoice.getItems().size()) {
+                feedback = new Content("You did not provide a valid answer; it contained duplicate items");
+            }
         }
 
         // STEP 2: If they did, does their answer match a known answer?
 
         if (null == feedback && null != submittedItemIds) {
-            // Sort the choices so that we match incorrect choices last, taking precedence over correct ones.
+            /* Sort the choices so that we match incorrect choices last, taking precedence over correct ones, and
+               so that strict (entire set) match choices take precedence over subset match choices.
+             */
             List<Choice> orderedChoices = getOrderedChoices(itemQuestion.getChoices());
 
             // For all the choices on this question...
@@ -116,12 +123,22 @@ public class IsaacItemQuestionValidator implements IValidator {
                 }
 
                 // ... look for a match to the submitted answer:
-                if (itemChoice.getItems().size() != submittedChoice.getItems().size()) {
-                    continue;
-                }
+
                 Set<String> choiceItemIds = itemChoice.getItems().stream().map(Item::getId).collect(Collectors.toSet());
 
-                if (choiceItemIds.equals(submittedItemIds)) {
+                // Do not allow subset matching by default
+                boolean allowSubsetMatch = (null != itemChoice.isAllowSubsetMatch() && itemChoice.isAllowSubsetMatch());
+
+                /* If the intersection of the submitted and choice ids is equal to the choice ones, then
+                   this means that:
+                    - choiceItemIds.size() <= submittedItemIds.size()
+                    - All choice ids are within the set of submitted ids
+                 */
+                if (allowSubsetMatch && Sets.intersection(submittedItemIds, choiceItemIds).equals(choiceItemIds)) {
+                    responseCorrect = itemChoice.isCorrect();
+                    feedback = (Content) itemChoice.getExplanation();
+                    break;
+                } else if (choiceItemIds.size() == submittedItemIds.size() && choiceItemIds.equals(submittedItemIds)) {
                     // This is safe from duplication issues, since the list lengths are the same too.
                     responseCorrect = itemChoice.isCorrect();
                     feedback = (Content) itemChoice.getExplanation();
@@ -131,6 +148,49 @@ public class IsaacItemQuestionValidator implements IValidator {
         }
 
         return new QuestionValidationResponse(question.getId(), answer, responseCorrect, feedback, new Date());
+    }
+
+    @Override
+    public List<Choice> getOrderedChoices(final List<Choice> choices) {
+        List<Choice> orderedChoices = Lists.newArrayList(choices);
+
+        /* First sort by whether subset matching is allowed or not - 'strict' match
+           item choices will appear before subset match ones.
+           Any Choices that are not ItemChoices will be ordered after 'strict' match
+           item choices.
+           Choices without a null value for allowSubsetMatch are considered 'strict'
+           for the ordering.
+         */
+        orderedChoices.sort((o1, o2) -> {
+            int o1Val = 1;
+            int o2Val = 1;
+            Boolean subsetMatch;
+            if (o1 instanceof ItemChoice) {
+                subsetMatch = ((ItemChoice) o1).isAllowSubsetMatch();
+                o1Val = (null != subsetMatch && subsetMatch) ? 1 : 0;
+            }
+            if (o2 instanceof ItemChoice) {
+                subsetMatch = ((ItemChoice) o2).isAllowSubsetMatch();
+                o2Val = (null != subsetMatch && subsetMatch) ? 1 : 0;
+            }
+            return o1Val - o2Val;
+        });
+
+        // Then sort in order of correctness
+        orderedChoices.sort((o1, o2) -> {
+            int o1Val = o1.isCorrect() ? 0 : 1;
+            int o2Val = o2.isCorrect() ? 0 : 1;
+            return o1Val - o2Val;
+        });
+
+        /* This should leave us with the following ordering:
+            0 Correct strict
+            1 Incorrect strict
+            2 Correct subset match
+            3 Incorrect subset match
+         */
+
+        return orderedChoices;
     }
 
 }
