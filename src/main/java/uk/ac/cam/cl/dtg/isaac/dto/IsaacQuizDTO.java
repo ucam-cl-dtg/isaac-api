@@ -37,6 +37,7 @@ import java.util.Set;
 public class IsaacQuizDTO extends SeguePageDTO implements EmailService.HasTitleOrId {
     private boolean visibleToStudents;
     private QuizFeedbackMode defaultFeedbackMode;
+    private String rubric;
 
     // Properties for sending feedback
     private Integer total;
@@ -62,13 +63,15 @@ public class IsaacQuizDTO extends SeguePageDTO implements EmailService.HasTitleO
             @JsonProperty("tags") Set<String> tags,
             @JsonProperty("level") Integer level,
             @JsonProperty("visibleToStudents") boolean visibleToStudents,
-            @JsonProperty("defaultFeedbackMode") QuizFeedbackMode defaultFeedbackMode) {
+            @JsonProperty("defaultFeedbackMode") QuizFeedbackMode defaultFeedbackMode,
+            @JsonProperty("rubric") String rubric) {
         super(id, title, subtitle, type, author, encoding,
                 canonicalSourceFile, layout, children, value, attribution,
                 relatedContent, published, tags, level);
 
         this.visibleToStudents = visibleToStudents;
         this.defaultFeedbackMode = defaultFeedbackMode;
+        this.rubric = rubric;
     }
 
     /**
@@ -94,6 +97,10 @@ public class IsaacQuizDTO extends SeguePageDTO implements EmailService.HasTitleO
     public void setDefaultFeedbackMode(QuizFeedbackMode defaultFeedbackMode) {
         this.defaultFeedbackMode = defaultFeedbackMode;
     }
+
+    public String getRubric() { return rubric; }
+
+    public void setRubric(String rubric) { this.rubric = rubric; }
 
     @Nullable
     public Integer getTotal() {

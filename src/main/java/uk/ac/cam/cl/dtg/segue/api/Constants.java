@@ -415,6 +415,7 @@ public final class Constants {
     public static final String[] ADDRESS_FIELDNAMES = {"addressLine1", "addressLine2", "town", "county", "postalCode"};
     public static final String SEARCHABLE_CONTENT_FIELDNAME = "searchableContent";
     public static final String VISIBLE_TO_STUDENTS_FIELDNAME = "visibleToStudents";
+    public static final String QUIZ_RUBRIC_FIELDNAME = "rubric";
 
     public static final String STAGE_FIELDNAME = "audience.stage";
     public static final String DIFFICULTY_FIELDNAME = "audience.difficulty";
