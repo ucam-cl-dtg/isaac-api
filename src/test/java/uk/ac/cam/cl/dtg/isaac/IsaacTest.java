@@ -234,8 +234,8 @@ public class IsaacTest {
         quizManager = createMock(QuizManager.class);
 
         registerDefaultsFor(quizManager, m -> {
-            expect(m.getAvailableQuizzes(true, null, null)).andStubReturn(wrap(studentQuizSummary));
-            expect(m.getAvailableQuizzes(false, null, null)).andStubReturn(wrap(studentQuizSummary, teacherQuizSummary));
+            expect(m.getAvailableQuizzes(true, 0, 9000)).andStubReturn(wrap(studentQuizSummary));
+            expect(m.getAvailableQuizzes(false, 0, 9000)).andStubReturn(wrap(studentQuizSummary, teacherQuizSummary));
             expect(m.findQuiz(studentQuiz.getId())).andStubReturn(studentQuiz);
             expect(m.findQuiz(teacherQuiz.getId())).andStubReturn(teacherQuiz);
             expect(m.findQuiz(otherQuiz.getId())).andStubReturn(otherQuiz);

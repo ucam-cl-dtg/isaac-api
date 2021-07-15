@@ -159,7 +159,7 @@ public class QuizFacade extends AbstractIsaacFacade {
     }
 
     /**
-     * Get quizzes visible to this user.
+     * Get quizzes visible to this user, starting from index 0.
      *
      * Anonymous users can't see quizzes.
      * Students can see quizzes with the visibleToStudents flag set.
@@ -170,9 +170,27 @@ public class QuizFacade extends AbstractIsaacFacade {
     @GET
     @Path("/available")
     @Produces(MediaType.APPLICATION_JSON)
-    @GZIP
-    @ApiOperation(value = "Get quizzes visible to this user.")
+    @ApiOperation(value = "Get quizzes visible to this user, from index 0.")
     public final Response getAvailableQuizzes(@Context final HttpServletRequest request) {
+        return getAvailableQuizzes(request, 0);
+    }
+
+    /**
+     * Get quizzes visible to this user, starting from the specified index.
+     *
+     * Anonymous users can't see quizzes.
+     * Students can see quizzes with the visibleToStudents flag set.
+     * Teachers and higher can see all quizzes.
+     *
+     * @return a Response containing a list of ContentSummaryDTO for the visible quizzes.
+     */
+    @GET
+    @Path("/available/{startIndex}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @GZIP
+    @ApiOperation(value = "Get quizzes visible to this user, from the specified index.")
+    public final Response getAvailableQuizzes(@Context final HttpServletRequest request,
+                                              @PathParam("startIndex") final Integer startIndex) {
         try {
             RegisteredUserDTO user = this.userManager.getCurrentRegisteredUser(request);
 
@@ -180,7 +198,10 @@ public class QuizFacade extends AbstractIsaacFacade {
 
             EntityTag etag = new EntityTag(this.contentManager.getCurrentContentSHA().hashCode() + "");
 
-            ResultsWrapper<ContentSummaryDTO> summary = this.quizManager.getAvailableQuizzes(isStudent, null, null);
+            // ** HARD-CODED DANGER AHEAD **
+            // The limit parameter in the following call is hard-coded and should be returned to a more reasonable
+            // number once we have a front-end pagination/load-more system in place.
+            ResultsWrapper<ContentSummaryDTO> summary = this.quizManager.getAvailableQuizzes(isStudent, startIndex, 9000);
 
             return ok(summary).tag(etag)
                 .cacheControl(getCacheControl(NUMBER_SECONDS_IN_ONE_HOUR, isStudent))
