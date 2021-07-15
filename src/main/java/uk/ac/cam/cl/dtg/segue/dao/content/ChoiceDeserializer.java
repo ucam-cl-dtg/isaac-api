@@ -34,6 +34,7 @@ import uk.ac.cam.cl.dtg.segue.dos.content.LogicFormula;
 import uk.ac.cam.cl.dtg.segue.dos.content.ParsonsChoice;
 import uk.ac.cam.cl.dtg.segue.dos.content.Quantity;
 import uk.ac.cam.cl.dtg.segue.dos.content.StringChoice;
+import uk.ac.cam.cl.dtg.segue.dos.content.RegexPattern;
 
 import java.io.IOException;
 
@@ -90,6 +91,8 @@ public class ChoiceDeserializer extends JsonDeserializer<Choice> {
                 return getSingletonChoiceMapper().readValue(root.toString(), GraphChoice.class);
             case "stringChoice":
                 return getSingletonChoiceMapper().readValue(root.toString(), StringChoice.class);
+            case "regexPattern":
+                return getSingletonChoiceMapper().readValue(root.toString(), RegexPattern.class);
             case "freeTextRule":
                 return getSingletonChoiceMapper().readValue(root.toString(), FreeTextRule.class);
             case "parsonsChoice":

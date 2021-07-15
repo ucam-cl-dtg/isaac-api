@@ -27,6 +27,7 @@ import uk.ac.cam.cl.dtg.segue.dos.content.LogicFormula;
 import uk.ac.cam.cl.dtg.segue.dos.content.ParsonsChoice;
 import uk.ac.cam.cl.dtg.segue.dos.content.Quantity;
 import uk.ac.cam.cl.dtg.segue.dos.content.StringChoice;
+import uk.ac.cam.cl.dtg.segue.dos.content.RegexPattern;
 import uk.ac.cam.cl.dtg.segue.dto.content.ChemicalFormulaDTO;
 import uk.ac.cam.cl.dtg.segue.dto.content.ChoiceDTO;
 import uk.ac.cam.cl.dtg.segue.dto.content.FormulaDTO;
@@ -37,6 +38,7 @@ import uk.ac.cam.cl.dtg.segue.dto.content.LogicFormulaDTO;
 import uk.ac.cam.cl.dtg.segue.dto.content.ParsonsChoiceDTO;
 import uk.ac.cam.cl.dtg.segue.dto.content.QuantityDTO;
 import uk.ac.cam.cl.dtg.segue.dto.content.StringChoiceDTO;
+import uk.ac.cam.cl.dtg.segue.dto.content.RegexPatternDTO;
 
 /**
  * ContentBaseOrikaConverter A specialist converter class to work with the Orika automapper library.
@@ -72,6 +74,8 @@ public class ChoiceOrikaConverter extends BidirectionalConverter<Choice, ChoiceD
             return super.mapperFacade.map(source, GraphChoiceDTO.class);
         } else if (source instanceof StringChoice) {
             return super.mapperFacade.map(source, StringChoiceDTO.class);
+        } else if (source instanceof RegexPattern) {
+            return super.mapperFacade.map(source, StringChoiceDTO.class);
         } else if (source instanceof FreeTextRule) {
             return super.mapperFacade.map(source, FreeTextRuleDTO.class);
         } else if (source instanceof ParsonsChoice) {
@@ -104,6 +108,8 @@ public class ChoiceOrikaConverter extends BidirectionalConverter<Choice, ChoiceD
         } else if (source instanceof GraphChoiceDTO) {
             return super.mapperFacade.map(source, GraphChoice.class);
         } else if (source instanceof StringChoiceDTO) {
+            return super.mapperFacade.map(source, StringChoice.class);
+        } else if (source instanceof RegexPatternDTO) {
             return super.mapperFacade.map(source, StringChoice.class);
         } else if (source instanceof FreeTextRuleDTO) {
             return super.mapperFacade.map(source, FreeTextRule.class);
