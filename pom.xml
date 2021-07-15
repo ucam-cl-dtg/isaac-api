@@ -20,7 +20,7 @@
         <powermock.version>2.0.4</powermock.version>
         <swagger-ui-version>3.19.5</swagger-ui-version>
         <prometheus.version>0.8.0</prometheus.version>
-        <jetty-maven-version>9.3.29.v20201019</jetty-maven-version>
+        <jetty-version>9.4.42.v20210604</jetty-version>
         <jetty.port.api>8080</jetty.port.api>
         <jetty.port.etl>8090</jetty.port.etl>
         <web.xml>override-api-web.xml</web.xml>
@@ -58,7 +58,7 @@
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlets</artifactId>
-            <version>${jetty-maven-version}</version>
+            <version>${jetty-version}</version>
         </dependency>
 
         <dependency>
@@ -371,14 +371,14 @@
         <dependency>
             <groupId>org.eclipse.jetty.websocket</groupId>
             <artifactId>javax-websocket-server-impl</artifactId>
-            <version>9.3.29.v20201019</version>
+            <version>${jetty-version}</version>
         </dependency>
 
         <!--Jetty Websocket API server side dependency -->
         <dependency>
             <groupId>org.eclipse.jetty.websocket</groupId>
             <artifactId>websocket-server</artifactId>
-            <version>9.3.29.v20201019</version>
+            <version>${jetty-version}</version>
         </dependency>
 
         <!-- Graph checker code -->
@@ -472,7 +472,7 @@
             <plugin>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-maven-plugin</artifactId>
-                <version>${jetty-maven-version}</version>
+                <version>${jetty-version}</version>
                 <configuration>
                     <webApp>
                         <contextPath>/isaac-api</contextPath>
@@ -564,7 +564,7 @@
                     <plugin>
                         <groupId>org.eclipse.jetty</groupId>
                         <artifactId>jetty-maven-plugin</artifactId>
-                        <version>${jetty-maven-version}</version>
+                        <version>${jetty-version}</version>
                         <configuration>
                             <webApp>
                                 <contextPath>/isaac-api</contextPath>

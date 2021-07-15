@@ -132,19 +132,14 @@ public final class Constants {
 
     // HMAC stuff
     /**
-     * Constant representing the key for the date signed property - used in HMAC calculations.
-     */
-    public static final String DATE_SIGNED = "DATE_SIGNED";
-
-    /**
      * Constant representing the key for the expiry date property - used in HMAC calculations.
      */
-    public static final String DATE_EXPIRES = "DATE_EXPIRES";
+    public static final String DATE_EXPIRES = "expires";
 
     /**
      * Constant representing the key for the additional date property - used in HMAC calculations.
      */
-    public static final String PARTIAL_LOGIN_FLAG = "partialLogin";
+    public static final String PARTIAL_LOGIN_FLAG = "partial";
 
     /**
      * Constant representing the key for the HMAC property - used in HMAC calculations.
@@ -164,7 +159,7 @@ public final class Constants {
     /**
      * Constant representing the key for the SESSION USER ID - used in HMAC calculations.
      */
-    public static final String SESSION_USER_ID = "currentUserId";
+    public static final String SESSION_USER_ID = "id";
 
     /**
      * Constant representing the key for the SESSION TOKEN - used in HMAC calculations.

@@ -1645,10 +1645,11 @@ public class UserAccountManager implements IUserAccountManager {
 
         // no session exists so create one.
         if (request.getSession().getAttribute(ANONYMOUS_USER) == null) {
-            user = new AnonymousUser(request.getSession().getId());
+            String anonymousUserId = getAnonymousUserIdFromRequest(request);
+            user = new AnonymousUser(anonymousUserId);
             user.setDateCreated(new Date());
             // add the user reference to the session
-            request.getSession().setAttribute(ANONYMOUS_USER, user.getSessionId());
+            request.getSession().setAttribute(ANONYMOUS_USER, anonymousUserId);
             this.temporaryUserCache.storeAnonymousUser(user);
 
         } else {
@@ -1671,6 +1672,16 @@ public class UserAccountManager implements IUserAccountManager {
             }
         }
         return user;
+    }
+
+    /**
+     * Hide the Jetty internals of session IDs and return an anonymous user ID.
+     * @param request - to extract the Jetty session ID
+     * @return - a String suitable for use as an anonymous identifier
+     */
+    private String getAnonymousUserIdFromRequest(final HttpServletRequest request) {
+        // TODO - could prepend with API segue version?
+        return request.getSession().getId().replace("node0", "");
     }
 
     /**

@@ -6,7 +6,7 @@ COPY . /isaac-api
 RUN mvn package -Dmaven.test.skip=true
 
 # create clean jetty docker container
-FROM jetty:9.3.29-jre8 as server
+FROM jetty:9.4.42-jre8 as server
 USER root
 COPY --from=target /isaac-api/target/isaac-api.war /var/lib/jetty/webapps/isaac-api.war
 RUN chmod 755 /var/lib/jetty/webapps/*

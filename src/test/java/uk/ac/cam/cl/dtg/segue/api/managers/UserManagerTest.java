@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import ma.glasnost.orika.MapperFacade;
+import org.apache.commons.codec.binary.Base64;
 import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
@@ -721,7 +722,7 @@ public class UserManagerTest {
     private Cookie[] getCookieArray(Map<String, String> sessionInformation) throws JsonProcessingException {
         ObjectMapper om = new ObjectMapper();
         Cookie[] cookieWithSessionInfo = { new Cookie(Constants.SEGUE_AUTH_COOKIE,
-                om.writeValueAsString(sessionInformation)) };
+                Base64.encodeBase64String(om.writeValueAsString(sessionInformation).getBytes())) };
         return cookieWithSessionInfo;
     }
 }
