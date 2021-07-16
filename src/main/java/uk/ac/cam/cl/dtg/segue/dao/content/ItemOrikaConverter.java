@@ -15,6 +15,7 @@
  */
 package uk.ac.cam.cl.dtg.segue.dao.content;
 
+import ma.glasnost.orika.MappingContext;
 import ma.glasnost.orika.converter.BidirectionalConverter;
 import ma.glasnost.orika.metadata.Type;
 import uk.ac.cam.cl.dtg.segue.dos.content.Item;
@@ -37,7 +38,7 @@ public class ItemOrikaConverter extends BidirectionalConverter<Item, ItemDTO> {
     }
 
     @Override
-    public ItemDTO convertTo(final Item source, final Type<ItemDTO> destinationType) {
+    public ItemDTO convertTo(final Item source, final Type<ItemDTO> destinationType, MappingContext _context) {
         if (null == source) {
             return null;
         }
@@ -53,7 +54,7 @@ public class ItemOrikaConverter extends BidirectionalConverter<Item, ItemDTO> {
     }
 
     @Override
-    public Item convertFrom(final ItemDTO source, final Type<Item> destinationType) {
+    public Item convertFrom(final ItemDTO source, final Type<Item> destinationType, MappingContext _context) {
         if (null == source) {
             return null;
         }

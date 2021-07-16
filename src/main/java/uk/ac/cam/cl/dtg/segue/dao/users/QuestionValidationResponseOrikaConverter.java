@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2014 Stephen Cummins
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,12 +15,13 @@
  */
 package uk.ac.cam.cl.dtg.segue.dao.users;
 
+import ma.glasnost.orika.MappingContext;
+import ma.glasnost.orika.converter.BidirectionalConverter;
+import ma.glasnost.orika.metadata.Type;
 import uk.ac.cam.cl.dtg.segue.dos.QuantityValidationResponse;
 import uk.ac.cam.cl.dtg.segue.dos.QuestionValidationResponse;
 import uk.ac.cam.cl.dtg.segue.dto.QuantityValidationResponseDTO;
 import uk.ac.cam.cl.dtg.segue.dto.QuestionValidationResponseDTO;
-import ma.glasnost.orika.converter.BidirectionalConverter;
-import ma.glasnost.orika.metadata.Type;
 
 /**
  * QuestionValidationResponseOrikaConverter A specialist converter class to work with the Orika automapper library.
@@ -41,7 +42,8 @@ public class QuestionValidationResponseOrikaConverter extends
 
     @Override
     public QuestionValidationResponseDTO convertTo(final QuestionValidationResponse source,
-            final Type<QuestionValidationResponseDTO> destinationType) {
+                                                   final Type<QuestionValidationResponseDTO> destinationType,
+                                                   MappingContext _context) {
         if (null == source) {
             return null;
         }
@@ -59,7 +61,8 @@ public class QuestionValidationResponseOrikaConverter extends
 
     @Override
     public QuestionValidationResponse convertFrom(final QuestionValidationResponseDTO source,
-            final Type<QuestionValidationResponse> destinationType) {
+                                                  final Type<QuestionValidationResponse> destinationType,
+                                                  MappingContext _context) {
         if (null == source) {
             return null;
         }

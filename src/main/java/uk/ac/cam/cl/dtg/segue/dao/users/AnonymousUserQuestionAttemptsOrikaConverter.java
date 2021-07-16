@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2014 Stephen Cummins
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,16 +15,16 @@
  */
 package uk.ac.cam.cl.dtg.segue.dao.users;
 
-import java.util.List;
-import java.util.Map;
-
 import com.google.api.client.util.Lists;
 import com.google.api.client.util.Maps;
-
+import ma.glasnost.orika.CustomConverter;
+import ma.glasnost.orika.MappingContext;
+import ma.glasnost.orika.metadata.Type;
 import uk.ac.cam.cl.dtg.segue.dos.QuestionValidationResponse;
 import uk.ac.cam.cl.dtg.segue.dto.QuestionValidationResponseDTO;
-import ma.glasnost.orika.CustomConverter;
-import ma.glasnost.orika.metadata.Type;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * AnonymousQuestionAttemptsOrikaConverter A specialist converter class to work with the Orika automapper library.
@@ -48,7 +48,8 @@ public class AnonymousUserQuestionAttemptsOrikaConverter
     @Override
     public Map<String, Map<String, List<QuestionValidationResponseDTO>>> convert(
             final Map<String, Map<String, List<QuestionValidationResponse>>> source,
-            final Type<? extends Map<String, Map<String, List<QuestionValidationResponseDTO>>>> destinationType) {
+            final Type<? extends Map<String, Map<String, List<QuestionValidationResponseDTO>>>> destinationType,
+            MappingContext _context) {
         // convert in one direction
         if (null == source) {
             return null;
