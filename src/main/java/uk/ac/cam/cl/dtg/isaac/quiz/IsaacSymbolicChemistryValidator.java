@@ -399,6 +399,10 @@ public class IsaacSymbolicChemistryValidator implements IValidator {
             }
         }
 
+        // STEP 5: If we still have no feedback to give, use the question's default feedback if any to use:
+        if (feedbackIsNullOrEmpty(feedback) && null != chemistryQuestion.getDefaultFeedback()) {
+            feedback = chemistryQuestion.getDefaultFeedback();
+        }
         return new QuestionValidationResponse(chemistryQuestion.getId(), answer, responseCorrect, feedback, new Date());
     }
 

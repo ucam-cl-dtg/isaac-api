@@ -162,6 +162,11 @@ public class IsaacParsonsValidator implements IValidator {
             }
         }
 
+        // STEP 3: If we still have no feedback to give, use the question's default feedback if any to use:
+        if (feedbackIsNullOrEmpty(feedback) && null != parsonsQuestion.getDefaultFeedback()) {
+            feedback = parsonsQuestion.getDefaultFeedback();
+        }
+
         return new QuestionValidationResponse(question.getId(), answer, responseCorrect, feedback, new Date());
     }
 

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2014 Stephen Cummins
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,19 +16,18 @@
 package uk.ac.cam.cl.dtg.segue.dto.content;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import uk.ac.cam.cl.dtg.segue.dto.QuestionValidationResponseDTO;
 
 import java.util.List;
 
-import uk.ac.cam.cl.dtg.segue.dto.QuestionValidationResponseDTO;
-
 /**
- * Choice object The choice object is a specialized form of content and allows the storage of data relating to possible
- * answers to questions.
+ * Base class for all question types.
  * 
  */
 public class QuestionDTO extends ContentDTO {
     protected ContentBaseDTO answer;
     protected List<ContentBaseDTO> hints;
+    protected ContentDTO defaultFeedback;
 
     // Set if the user is logged in and we have information.
     protected QuestionValidationResponseDTO bestAttempt;
@@ -78,6 +77,25 @@ public class QuestionDTO extends ContentDTO {
      */
     public void setHints(final List<ContentBaseDTO> hints) {
         this.hints = hints;
+    }
+
+    /**
+     * Gets the default feedback to be used when no other feedback is generated..
+     *
+     * @return the defaultFeedback
+     */
+    public final ContentDTO getDefaultFeedback() {
+        return defaultFeedback;
+    }
+
+    /**
+     * Sets the default feedback to be used when no other feedback is generated.
+     *
+     * @param defaultFeedback
+     *            the defaultFeedback to set
+     */
+    public final void setDefaultFeedback(final ContentDTO defaultFeedback) {
+        this.defaultFeedback = defaultFeedback;
     }
 
     /**

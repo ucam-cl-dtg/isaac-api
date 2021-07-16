@@ -137,7 +137,7 @@ public class IsaacNumericValidator implements IValidator {
             // Only return this if the answer is incorrect - as we don't know if the correct answers have always been
             // specified in the correct # of sig figs.
             if (bestResponse != null && !bestResponse.isCorrect()) {
-                return bestResponse;
+                return useDefaultFeedbackIfNecessary(isaacNumericQuestion, bestResponse);
             }
 
             // Step 2 - then do correct answer numeric equivalence checking.
@@ -153,7 +153,7 @@ public class IsaacNumericValidator implements IValidator {
                     && !(DEFAULT_VALIDATION_RESPONSE.equals(bestResponse.getExplanation().getValue())
                     || DEFAULT_WRONG_UNIT_VALIDATION_RESPONSE
                     .equals(bestResponse.getExplanation().getValue()))) {
-                return bestResponse;
+                return useDefaultFeedbackIfNecessary(isaacNumericQuestion, bestResponse);
             }
 
             // Step 3 - then do sig fig checking:
@@ -175,7 +175,7 @@ public class IsaacNumericValidator implements IValidator {
             }
             log.debug("Finished validation: correct=" + bestResponse.isCorrect() + ", correctValue="
                     + bestResponse.getCorrectValue() + ", correctUnits=" + bestResponse.getCorrectUnits());
-            return bestResponse;
+            return useDefaultFeedbackIfNecessary(isaacNumericQuestion, bestResponse);
         } catch (NumberFormatException e) {
             log.debug("Validation failed for '" + answerFromUser.getValue() + " " + answerFromUser.getUnits() + "': "
                     + "cannot parse as number!");
@@ -494,5 +494,30 @@ public class IsaacNumericValidator implements IValidator {
         reformattedNumber = reformattedNumber.replaceFirst(PREFIXED_POWER_OF_TEN_REGEX, "e${exp1}${exp2}");
         reformattedNumber = reformattedNumber.replaceFirst(BARE_POWER_OF_TEN_REGEX, "1e${exp1}${exp2}");
         return reformattedNumber;
+    }
+
+    /**
+     *  Replace explanation of validation response if question has default feedback and existing feedback blank or generic.
+     *
+     *  This method could be void, since it modifies the object passed in by reference, but it makes for shorter and
+     *  simpler code when it is used if it just returns the same object it is passed.
+     *
+     * @param question - the question to use the default feedback of
+     * @param response - the response to modify if necessary
+     * @return the modified response object
+     */
+
+    private QuantityValidationResponse useDefaultFeedbackIfNecessary(final IsaacNumericQuestion question,
+                                                                     final QuantityValidationResponse response) {
+        Content feedback = response.getExplanation();
+        boolean feedbackEmptyOrGeneric = feedbackIsNullOrEmpty(feedback) || DEFAULT_VALIDATION_RESPONSE.equals(feedback.getValue())
+                || DEFAULT_WRONG_UNIT_VALIDATION_RESPONSE.equals(feedback.getValue());
+
+        if (null != question.getDefaultFeedback() && feedbackEmptyOrGeneric) {
+            log.debug("Replacing generic or blank explanation with default feedback from question.");
+            response.setExplanation(question.getDefaultFeedback());
+            // TODO - should this preserve the 'sig_figs' tag? If so, how to do it without modifying the referenced default feedback?
+        }
+        return response;
     }
 }

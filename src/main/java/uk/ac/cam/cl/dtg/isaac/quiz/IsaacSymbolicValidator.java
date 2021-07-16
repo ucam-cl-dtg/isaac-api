@@ -265,6 +265,11 @@ public class IsaacSymbolicValidator implements IValidator {
             }
         }
 
+        // STEP 4: If we still have no feedback to give, use the question's default feedback if any to use:
+        if (feedbackIsNullOrEmpty(feedback) && null != symbolicQuestion.getDefaultFeedback()) {
+            feedback = symbolicQuestion.getDefaultFeedback();
+        }
+
         // If we got this far and feedback is still null, they were wrong. There's no useful feedback we can give at this point.
 
         return new FormulaValidationResponse(symbolicQuestion.getId(), answer, feedback, responseCorrect, responseMatchType.toString(), new Date());

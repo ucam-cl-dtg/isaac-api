@@ -395,6 +395,34 @@ public class IsaacNumericValidatorTest {
         assertTrue(response_1sf.getExplanation().getTags().contains("sig_figs"));
     }
 
+    /*
+        Test default feedback is used when a known answer is matched and no explanation given.
+    */
+    @Test
+    public final void isaacNumericValidator_DefaultFeedbackAndCorrectNoExplanation_DefaultFeedbackReturned() {
+        // Set up the question object:
+        IsaacNumericQuestion someNumericQuestion = new IsaacNumericQuestion();
+        someNumericQuestion.setRequireUnits(false);
+        Content defaultFeedback = new Content("DEFAULT FEEDBACK!");
+        someNumericQuestion.setDefaultFeedback(defaultFeedback);
+
+        List<Choice> answerList = Lists.newArrayList();
+        Quantity someCorrectAnswer = new Quantity("10");
+        someCorrectAnswer.setCorrect(true);
+        answerList.add(someCorrectAnswer);
+
+        someNumericQuestion.setChoices(answerList);
+
+        // Set up user answer:
+        Quantity q = new Quantity("10");
+
+        // Test response:
+        QuestionValidationResponse response = validator.validateQuestionResponse(someNumericQuestion, q);
+
+        assertTrue(response.isCorrect());
+        assertEquals(response.getExplanation(), defaultFeedback);
+    }
+
     //  ---------- Tests from here test invalid questions themselves ----------
 
     /*

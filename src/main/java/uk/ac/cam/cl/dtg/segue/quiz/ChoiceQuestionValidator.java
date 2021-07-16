@@ -41,8 +41,11 @@ public class ChoiceQuestionValidator implements IValidator {
         Validate.notNull(question);
         Validate.notNull(answer);
 
-        // check that the question is of type ChoiceQuestion before we go ahead
         ChoiceQuestion choiceQuestion;
+        // These variables store the important features of the response we'll send.
+        Content feedback = null;                        // The feedback we send the user
+        boolean responseCorrect = false;                // Whether we're right or wrong
+        // check that the question is of type ChoiceQuestion before we go ahead
         if (question instanceof ChoiceQuestion) {
             choiceQuestion = (ChoiceQuestion) question;
 
@@ -54,16 +57,21 @@ public class ChoiceQuestionValidator implements IValidator {
 
             for (Choice choice : choiceQuestion.getChoices()) {
                 if (choice.getValue().equals(answer.getValue())) {
-                    
-                    return new QuestionValidationResponse(question.getId(), answer, choice.isCorrect(),
-                            (Content) choice.getExplanation(), new Date());
+                    responseCorrect = choice.isCorrect();
+                    feedback = (Content) choice.getExplanation();
+                    break;
                 }
             }
 
             log.info("Unable to find choice for question ( " + question.getId() + " ) matching the answer supplied ("
-                    + answer + "). Returning that it is incorrect with out an explanation.");
+                    + answer + "). Returning that it is incorrect without an explanation.");
 
-            return new QuestionValidationResponse(question.getId(), answer, false, null, new Date());
+            // If we still have no feedback to give, use the question's default feedback if any to use:
+            if (feedbackIsNullOrEmpty(feedback) && null != choiceQuestion.getDefaultFeedback()) {
+                feedback = choiceQuestion.getDefaultFeedback();
+            }
+
+            return new QuestionValidationResponse(question.getId(), answer, responseCorrect, feedback, new Date());
         } else {
             log.error("Expected to be able to cast the question as a ChoiceQuestion " + "but this cast failed.");
             throw new ClassCastException("Incorrect type of question received. Unable to validate.");
