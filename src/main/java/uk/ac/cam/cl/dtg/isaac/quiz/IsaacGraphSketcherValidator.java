@@ -121,6 +121,11 @@ public class IsaacGraphSketcherValidator implements IValidator, ISpecifier {
             }
         }
 
+        // STEP 3: If we still have no feedback to give, use the question's default feedback if any to use:
+        if (feedbackIsNullOrEmpty(feedback) && null != graphSketcherQuestion.getDefaultFeedback()) {
+            feedback = graphSketcherQuestion.getDefaultFeedback();
+        }
+
         return new QuestionValidationResponse(question.getId(), answer, responseCorrect, feedback, new Date());
     }
 

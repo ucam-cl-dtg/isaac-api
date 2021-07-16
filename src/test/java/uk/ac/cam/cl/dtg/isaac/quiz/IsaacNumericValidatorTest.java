@@ -167,16 +167,28 @@ public class IsaacNumericValidatorTest {
     @Test
     public final void isaacNumericValidator_IncorrectSigFigsCorrectUnit_IncorrectResponseShouldHappen() {
         // Set up user answer:
-        Quantity q = new Quantity("4", correctUnits);
+        Quantity q_tooFew = new Quantity("4", correctUnits);
 
         // Test response:
-        QuantityValidationResponse response = (QuantityValidationResponse) validator.validateQuestionResponse(numericQuestionWithUnits, q);
+        QuantityValidationResponse responseTooFew = (QuantityValidationResponse) validator.validateQuestionResponse(numericQuestionWithUnits, q_tooFew);
 
         // Check answer is wrong,
-        assertFalse(response.isCorrect());
-        assertFalse(response.getCorrectValue());
+        assertFalse(responseTooFew.isCorrect());
+        assertFalse(responseTooFew.getCorrectValue());
         // but units are right:
-        assertTrue(response.getCorrectUnits());
+        assertTrue(responseTooFew.getCorrectUnits());
+
+        // Set up user answer:
+        Quantity q_tooMany = new Quantity("42.000", correctUnits);
+
+        // Test response:
+        QuantityValidationResponse responseTooMany = (QuantityValidationResponse) validator.validateQuestionResponse(numericQuestionWithUnits, q_tooMany);
+
+        // Check answer is wrong,
+        assertFalse(responseTooMany.isCorrect());
+        assertFalse(responseTooMany.getCorrectValue());
+        // but units are right:
+        assertTrue(responseTooMany.getCorrectUnits());
     }
 
     /*
@@ -352,14 +364,14 @@ public class IsaacNumericValidatorTest {
         // Test response:
         QuestionValidationResponse response_3sf = validator.validateQuestionResponse(someNumericQuestion, q_3sf);
         assertFalse(response_3sf.isCorrect());
-        assertFalse(response_3sf.getExplanation().getValue().toLowerCase().contains("significant figures"));
+        assertFalse(response_3sf.getExplanation().getTags().contains("sig_figs"));
 
         // Set up a user answer:
         Quantity q_2sf = new Quantity("2.0");
         // Test response:
         QuestionValidationResponse response_2sf = validator.validateQuestionResponse(someNumericQuestion, q_2sf);
         assertFalse(response_2sf.isCorrect());
-        assertFalse(response_2sf.getExplanation().getValue().toLowerCase().contains("significant figures"));
+        assertFalse(response_2sf.getExplanation().getTags().contains("sig_figs"));
     }
 
     /*
@@ -393,6 +405,76 @@ public class IsaacNumericValidatorTest {
         QuestionValidationResponse response_1sf = validator.validateQuestionResponse(someNumericQuestion, q_1sf);
         assertFalse("expected 2 not to match 1.6875 to 2 or 3 sf", response_1sf.isCorrect());
         assertTrue(response_1sf.getExplanation().getTags().contains("sig_figs"));
+    }
+
+    /*
+    Test incorrect sig fig answers to questions allowing a range of significant figures.
+ */
+    @Test
+    public final void isaacNumericValidator_TestQuestionWithSigFigRange_SigFigResponses() {
+        // Set up the question object:
+        IsaacNumericQuestion someNumericQuestion = new IsaacNumericQuestion();
+        someNumericQuestion.setRequireUnits(false);
+        someNumericQuestion.setSignificantFiguresMin(2);
+        someNumericQuestion.setSignificantFiguresMax(3);
+
+        List<Choice> answerList = Lists.newArrayList();
+        Quantity someCorrectAnswer = new Quantity("1.6875");
+        someCorrectAnswer.setCorrect(true);
+
+        answerList.add(someCorrectAnswer);
+        someNumericQuestion.setChoices(answerList);
+
+        // Set up a correct user answer with too many sig figs:
+        Quantity q_5sf_corr = new Quantity("1.6875");
+        // Test response is sig fig message:
+        QuestionValidationResponse response_5sf_corr = validator.validateQuestionResponse(someNumericQuestion, q_5sf_corr);
+        assertFalse("expected 1.6875 not to match 1.6875 to 2 or 3 sf", response_5sf_corr.isCorrect());
+        assertTrue(response_5sf_corr.getExplanation().getTags().contains("sig_figs"));
+        assertTrue(response_5sf_corr.getExplanation().getTags().contains("sig_figs_too_many"));
+
+        // Set up a wrong user answer with too many sig figs:
+        Quantity q_5sf_wrong = new Quantity("2.7986");
+        // Test response does not mention sig figs:
+        QuestionValidationResponse response_5sf_wrong = validator.validateQuestionResponse(someNumericQuestion, q_5sf_wrong);
+        assertFalse("expected 2.7986 not to match 1.6875", response_5sf_wrong.isCorrect());
+        assertFalse("expected 2.7986 without sig fig message", response_5sf_wrong.getExplanation().getTags().contains("sig_figs"));
+
+        // Set up a user answer:
+        Quantity q_1sf = new Quantity("5");
+        // Test response:
+        QuestionValidationResponse response_1sf = validator.validateQuestionResponse(someNumericQuestion, q_1sf);
+        assertFalse("expected 5 not to match 1.6875 to 2 or 3 sf", response_1sf.isCorrect());
+        assertTrue(response_1sf.getExplanation().getTags().contains("sig_figs"));
+        assertTrue(response_1sf.getExplanation().getTags().contains("sig_figs_too_few"));
+    }
+
+    /*
+        Test default feedback is used when a known answer is matched and no explanation given.
+    */
+    @Test
+    public final void isaacNumericValidator_DefaultFeedbackAndCorrectNoExplanation_DefaultFeedbackReturned() {
+        // Set up the question object:
+        IsaacNumericQuestion someNumericQuestion = new IsaacNumericQuestion();
+        someNumericQuestion.setRequireUnits(false);
+        Content defaultFeedback = new Content("DEFAULT FEEDBACK!");
+        someNumericQuestion.setDefaultFeedback(defaultFeedback);
+
+        List<Choice> answerList = Lists.newArrayList();
+        Quantity someCorrectAnswer = new Quantity("10");
+        someCorrectAnswer.setCorrect(true);
+        answerList.add(someCorrectAnswer);
+
+        someNumericQuestion.setChoices(answerList);
+
+        // Set up user answer:
+        Quantity q = new Quantity("10");
+
+        // Test response:
+        QuestionValidationResponse response = validator.validateQuestionResponse(someNumericQuestion, q);
+
+        assertTrue(response.isCorrect());
+        assertEquals(response.getExplanation(), defaultFeedback);
     }
 
     //  ---------- Tests from here test invalid questions themselves ----------
@@ -642,13 +724,17 @@ public class IsaacNumericValidatorTest {
         for (String number : numbersToTest) {
 
             for (Integer sigFig : sigFigsToPass) {
-                boolean validate = Whitebox.<Boolean>invokeMethod(test, "verifyCorrectNumberOfSignificantFigures", number, sigFig, sigFig);
-                assertTrue("Verifying sigfig success failed " + number + " " + sigFig, validate);
+                boolean tooFew = Whitebox.<Boolean>invokeMethod(test, "tooFewSignificantFigures", number, sigFig);
+                assertFalse("Unexpected too few sig fig for " + number + " @ " + sigFig + "sf", tooFew);
+                boolean tooMany = Whitebox.<Boolean>invokeMethod(test, "tooManySignificantFigures", number, sigFig);
+                assertFalse("Unexpected too many sig fig for " + number + " @ " + sigFig + "sf", tooMany);
             }
 
             for (Integer sigFig : sigFigsToFail) {
-                boolean validate = Whitebox.<Boolean>invokeMethod(test, "verifyCorrectNumberOfSignificantFigures", number, sigFig, sigFig);
-                assertFalse("Verifying sigfig failures failed " + number + " " + sigFig, validate);
+                boolean tooFew = Whitebox.<Boolean>invokeMethod(test, "tooFewSignificantFigures", number, sigFig);
+                boolean tooMany = Whitebox.<Boolean>invokeMethod(test, "tooManySignificantFigures", number, sigFig);
+                boolean incorrectSigFig = tooMany || tooFew;
+                assertTrue("Expected incorrect sig fig for " + number + " @ " + sigFig + "sf", incorrectSigFig);
             }
         }
     }

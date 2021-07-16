@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2014 Stephen Cummins
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,9 +19,8 @@ import java.util.List;
 import uk.ac.cam.cl.dtg.segue.dto.content.QuestionDTO;
 
 /**
- * Choice object The choice object is a specialized form of content and allows the storage of data relating to possible
- * answers to questions.
- * 
+ * Base class for all question types.
+ *
  */
 @DTOMapping(QuestionDTO.class)
 @JsonContentType("question")
@@ -29,6 +28,7 @@ public class Question extends Content {
 
     protected ContentBase answer;
     protected List<ContentBase> hints;
+    protected Content defaultFeedback;
 
 
     public Question() {
@@ -71,6 +71,25 @@ public class Question extends Content {
      */
     public final void setHints(final List<ContentBase> hints) {
         this.hints = hints;
+    }
+
+    /**
+     * Gets the default feedback to be used when no other feedback is generated..
+     *
+     * @return the defaultFeedback
+     */
+    public final Content getDefaultFeedback() {
+        return defaultFeedback;
+    }
+
+    /**
+     * Sets the default feedback to be used when no other feedback is generated.
+     *
+     * @param defaultFeedback
+     *            the defaultFeedback to set
+     */
+    public final void setDefaultFeedback(final Content defaultFeedback) {
+        this.defaultFeedback = defaultFeedback;
     }
 
 }

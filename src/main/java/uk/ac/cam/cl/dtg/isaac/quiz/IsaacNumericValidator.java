@@ -15,6 +15,7 @@
  */
 package uk.ac.cam.cl.dtg.isaac.quiz;
 
+import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.cam.cl.dtg.isaac.dos.IsaacNumericQuestion;
@@ -137,7 +138,7 @@ public class IsaacNumericValidator implements IValidator {
             // Only return this if the answer is incorrect - as we don't know if the correct answers have always been
             // specified in the correct # of sig figs.
             if (bestResponse != null && !bestResponse.isCorrect()) {
-                return bestResponse;
+                return useDefaultFeedbackIfNecessary(isaacNumericQuestion, bestResponse);
             }
 
             // Step 2 - then do correct answer numeric equivalence checking.
@@ -153,13 +154,12 @@ public class IsaacNumericValidator implements IValidator {
                     && !(DEFAULT_VALIDATION_RESPONSE.equals(bestResponse.getExplanation().getValue())
                     || DEFAULT_WRONG_UNIT_VALIDATION_RESPONSE
                     .equals(bestResponse.getExplanation().getValue()))) {
-                return bestResponse;
+                return useDefaultFeedbackIfNecessary(isaacNumericQuestion, bestResponse);
             }
 
             // Step 3 - then do sig fig checking:
-            if (!this.verifyCorrectNumberOfSignificantFigures(answerFromUser.getValue(),
-                    isaacNumericQuestion.getSignificantFiguresMin(), isaacNumericQuestion.getSignificantFiguresMax())) {
-                // Make sure that the answer is to the right number of sig figs before we proceed.
+            if (tooFewSignificantFigures(answerFromUser.getValue(), isaacNumericQuestion.getSignificantFiguresMin())) {
+                // If too few sig figs then give feedback about this.
 
                 // If we have unit information available put it in our response.
                 Boolean validUnits = null;
@@ -169,13 +169,31 @@ public class IsaacNumericValidator implements IValidator {
                 }
                 // Our new bestResponse is about incorrect significant figures:
                 Content sigFigResponse = new Content(DEFAULT_VALIDATION_RESPONSE);
-                sigFigResponse.setTags(new HashSet<>(Collections.singletonList("sig_figs")));
+                sigFigResponse.setTags(new HashSet<>(ImmutableList.of("sig_figs", "sig_figs_too_few")));
                 bestResponse = new QuantityValidationResponse(question.getId(), answerFromUser, false, sigFigResponse,
                         false, validUnits, new Date());
             }
+            if (tooManySignificantFigures(answerFromUser.getValue(), isaacNumericQuestion.getSignificantFiguresMax())
+                    && bestResponse.isCorrect()) {
+                // If (and only if) _correct_, but to too many sig figs, give feedback about this.
+
+                // If we have unit information available put it in our response.
+                Boolean validUnits = null;
+                if (isaacNumericQuestion.getRequireUnits()) {
+                    // Whatever the current bestResponse is, it contains all we need to know about the units:
+                    validUnits = bestResponse.getCorrectUnits();
+                }
+                // Our new bestResponse is about incorrect significant figures:
+                Content sigFigResponse = new Content(DEFAULT_VALIDATION_RESPONSE);
+                sigFigResponse.setTags(new HashSet<>(ImmutableList.of("sig_figs", "sig_figs_too_many")));
+                bestResponse = new QuantityValidationResponse(question.getId(), answerFromUser, false, sigFigResponse,
+                        false, validUnits, new Date());
+            }
+
+            // And then return the bestResponse:
             log.debug("Finished validation: correct=" + bestResponse.isCorrect() + ", correctValue="
                     + bestResponse.getCorrectValue() + ", correctUnits=" + bestResponse.getCorrectUnits());
-            return bestResponse;
+            return useDefaultFeedbackIfNecessary(isaacNumericQuestion, bestResponse);
         } catch (NumberFormatException e) {
             log.debug("Validation failed for '" + answerFromUser.getValue() + " " + answerFromUser.getUnits() + "': "
                     + "cannot parse as number!");
@@ -414,26 +432,33 @@ public class IsaacNumericValidator implements IValidator {
     }
 
     /**
-     * Helper method to verify if the answer given is to the correct number of significant figures.
+     * Helper method to verify if the answer given is to too few significant figures.
      *
      * @param valueToCheck      - the value as a string from the user to check.
      * @param minAllowedSigFigs - the minimum number of significant figures that is expected for the answer to be correct.
-     * @param maxAllowedSigFigs - the maximum number of significant figures that is expected for the answer to be correct.
-     * @return true if yes false if not.
+     * @return true if too few, false if not.
      */
-    private boolean verifyCorrectNumberOfSignificantFigures(final String valueToCheck, final int minAllowedSigFigs,
-                                                            final int maxAllowedSigFigs) {
-        log.debug("\t[verifyCorrectNumberOfSignificantFigures]");
+    private boolean tooFewSignificantFigures(final String valueToCheck, final int minAllowedSigFigs) {
+        log.debug("\t[tooFewSignificantFigures]");
 
         SigFigResult sigFigsFromUser = extractSignificantFigures(valueToCheck);
 
-        if (!sigFigsFromUser.isAmbiguous) {
-            int userSigFigs = sigFigsFromUser.sigFigsMin;  // If not ambiguous, min and max are guaranteed to be equal!
-            return userSigFigs <= maxAllowedSigFigs && userSigFigs >= minAllowedSigFigs;
-        } else {
-            // Must check that the two ranges have some overlap:
-            return sigFigsFromUser.sigFigsMin <= maxAllowedSigFigs && minAllowedSigFigs <= sigFigsFromUser.sigFigsMax;
-        }
+        return sigFigsFromUser.sigFigsMax < minAllowedSigFigs;
+    }
+
+    /**
+     * Helper method to verify if the answer given is to too many significant figures.
+     *
+     * @param valueToCheck      - the value as a string from the user to check.
+     * @param maxAllowedSigFigs - the maximum number of significant figures that is expected for the answer to be correct.
+     * @return true if too many, false if not.
+     */
+    private boolean tooManySignificantFigures(final String valueToCheck, final int maxAllowedSigFigs) {
+        log.debug("\t[tooManySignificantFigures]");
+
+        SigFigResult sigFigsFromUser = extractSignificantFigures(valueToCheck);
+
+        return sigFigsFromUser.sigFigsMin > maxAllowedSigFigs;
     }
 
     /**
@@ -494,5 +519,29 @@ public class IsaacNumericValidator implements IValidator {
         reformattedNumber = reformattedNumber.replaceFirst(PREFIXED_POWER_OF_TEN_REGEX, "e${exp1}${exp2}");
         reformattedNumber = reformattedNumber.replaceFirst(BARE_POWER_OF_TEN_REGEX, "1e${exp1}${exp2}");
         return reformattedNumber;
+    }
+
+    /**
+     *  Replace explanation of validation response if question has default feedback and existing feedback blank or generic.
+     *
+     *  This method could be void, since it modifies the object passed in by reference, but it makes for shorter and
+     *  simpler code when it is used if it just returns the same object it is passed.
+     *
+     * @param question - the question to use the default feedback of
+     * @param response - the response to modify if necessary
+     * @return the modified response object
+     */
+    private QuantityValidationResponse useDefaultFeedbackIfNecessary(final IsaacNumericQuestion question,
+                                                                     final QuantityValidationResponse response) {
+        Content feedback = response.getExplanation();
+        boolean feedbackEmptyOrGeneric = feedbackIsNullOrEmpty(feedback) || DEFAULT_VALIDATION_RESPONSE.equals(feedback.getValue())
+                || DEFAULT_WRONG_UNIT_VALIDATION_RESPONSE.equals(feedback.getValue());
+
+        if (null != question.getDefaultFeedback() && feedbackEmptyOrGeneric) {
+            log.debug("Replacing generic or blank explanation with default feedback from question.");
+            response.setExplanation(question.getDefaultFeedback());
+            // TODO - should this preserve the 'sig_figs' tag? If so, how to do it without modifying the referenced default feedback?
+        }
+        return response;
     }
 }

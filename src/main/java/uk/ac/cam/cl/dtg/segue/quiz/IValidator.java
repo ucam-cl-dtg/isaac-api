@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2014 Stephen Cummins
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,6 +30,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 import uk.ac.cam.cl.dtg.segue.dos.QuestionValidationResponse;
 import uk.ac.cam.cl.dtg.segue.dos.content.Choice;
+import uk.ac.cam.cl.dtg.segue.dos.content.Content;
 import uk.ac.cam.cl.dtg.segue.dos.content.Question;
 
 import java.io.IOException;
@@ -118,5 +119,20 @@ public interface IValidator {
         HashMap<String, Object> response = mapper.readValue(responseString, HashMap.class);
 
         return response;
+    }
+
+    /**
+     *  Check if a feedback content object contains no meaningful feedback.
+     *
+     * @param feedback - content object to test
+     * @return whether the content object is empty
+     */
+    default boolean feedbackIsNullOrEmpty(final Content feedback) {
+        if (null == feedback) {
+            return true;
+        }
+        boolean valueEmpty = null == feedback.getValue() || feedback.getValue().isEmpty();
+        boolean childrenEmpty = null == feedback.getChildren() || feedback.getChildren().isEmpty();
+        return valueEmpty && childrenEmpty;
     }
 }

@@ -130,6 +130,11 @@ public class IsaacItemQuestionValidator implements IValidator {
             }
         }
 
+        // STEP 3: If we still have no feedback to give, use the question's default feedback if any to use:
+        if (feedbackIsNullOrEmpty(feedback) && null != itemQuestion.getDefaultFeedback()) {
+            feedback = itemQuestion.getDefaultFeedback();
+        }
+
         return new QuestionValidationResponse(question.getId(), answer, responseCorrect, feedback, new Date());
     }
 
